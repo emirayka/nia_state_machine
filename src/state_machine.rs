@@ -82,6 +82,7 @@ impl<K, V> StateMachine<K, V>
             _ => {
                 self.current_node_id = self.root_node_id;
 
+                self.current_path.push(key);
                 let result = StateMachineResult::fallback(
                     self.current_path.clone()
                 );
@@ -127,10 +128,10 @@ mod tests {
 
         assert_eq!(StateMachineResult::Transition(), state_machine.excite(1));
         assert_eq!(StateMachineResult::Transition(), state_machine.excite(2));
-        assert_eq!(StateMachineResult::Fallback(vec!(1, 2)), state_machine.excite(1));
+        assert_eq!(StateMachineResult::Fallback(vec!(1, 2, 1)), state_machine.excite(1));
 
         assert_eq!(StateMachineResult::Excited(2), state_machine.excite(4));
-        assert_eq!(StateMachineResult::Fallback(vec!()), state_machine.excite(2));
+        assert_eq!(StateMachineResult::Fallback(vec!(2)), state_machine.excite(2));
     }
 
     #[test]
