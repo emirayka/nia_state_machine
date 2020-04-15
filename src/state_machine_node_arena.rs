@@ -5,14 +5,16 @@ use crate::state_machine_node_id::StateMachineNodeId;
 use crate::state_machine_node::StateMachineNode;
 
 pub struct StateMachineNodeArena<K, V>
-    where K: PartialEq + Eq + Hash
+    where K: Clone + PartialEq + Eq + Hash,
+          V: Clone
 {
     nodes: HashMap<StateMachineNodeId, StateMachineNode<K, V>>,
     next_node_id: usize,
 }
 
 impl<K, V> StateMachineNodeArena<K, V>
-    where K: PartialEq + Eq + Hash
+    where K: Clone + PartialEq + Eq + Hash,
+          V: Clone
 {
     pub fn new() -> StateMachineNodeArena<K, V> {
         StateMachineNodeArena {
@@ -72,7 +74,7 @@ impl<K, V> StateMachineNodeArena<K, V>
             StateMachineNode::Ordinary(next_nodes) => {
                 next_nodes.insert(key, next_node_id);
                 Ok(())
-            },
+            }
             _ => Err(())
         }
     }

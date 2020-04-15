@@ -4,14 +4,16 @@ use std::collections::HashMap;
 use crate::state_machine_node_id::StateMachineNodeId;
 
 pub enum StateMachineNode<K, V>
-    where K: PartialEq + Eq + Hash
+    where K: Clone + PartialEq + Eq + Hash,
+          V: Clone
 {
     Ordinary(HashMap<K, StateMachineNodeId>),
     End(V),
 }
 
 impl<K, V> StateMachineNode<K, V>
-    where K: PartialEq + Eq + Hash
+    where K: Clone + PartialEq + Eq + Hash,
+          V: Clone
 {
     pub fn ordinary() -> StateMachineNode<K, V> {
         StateMachineNode::Ordinary(HashMap::new())
