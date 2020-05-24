@@ -1,13 +1,19 @@
 use std::hash::Hash;
+use std::fmt::Debug;
+
+use log::{
+    debug
+};
 
 use crate::state_machine_node_id::StateMachineNodeId;
 use crate::state_machine_node::StateMachineNode;
 use crate::state_machine_node_arena::StateMachineNodeArena;
 use crate::state_machine_result::StateMachineResult;
 
+#[derive(Clone, Debug)]
 pub struct StateMachine<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     arena: StateMachineNodeArena<K, V>,
     current_node_id: StateMachineNodeId,
@@ -16,8 +22,8 @@ pub struct StateMachine<K, V>
 }
 
 impl<K, V> StateMachine<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     pub fn new() -> StateMachine<K, V> {
         let mut arena = StateMachineNodeArena::new();
@@ -25,15 +31,22 @@ impl<K, V> StateMachine<K, V>
         let current_node_id = root_node_id;
         let current_path = Vec::new();
 
-        StateMachine {
+        let state_machine = StateMachine {
             arena,
             current_node_id,
             root_node_id,
             current_path,
-        }
+        };
+
+        debug!("Constructed state machine:\n");
+        debug!("{:?}", state_machine);
+
+        state_machine
     }
 
     pub fn add(&mut self, keys: Vec<K>, value: V) -> Result<(), ()> {
+        debug!("Adding path: {:?} -> {:?}", keys, value);
+
         let mut current_node_id = self.root_node_id;
 
         let mut keys = keys;
@@ -59,30 +72,48 @@ impl<K, V> StateMachine<K, V>
     }
 
     pub fn excite(&mut self, key: K) -> StateMachineResult<K, V> {
+        debug!("Exciting with key: {:?}.", key);
+        debug!("Current path: {:?}.", self.current_path);
+
         let current_node_id = self.current_node_id;
         let next_node_id = self.arena.get_next_node(current_node_id, &key);
 
         match next_node_id {
             Some(next_node_id) => {
+                debug!("Found next node: {:?}.", next_node_id);
+
                 match self.arena.get_node(next_node_id) {
                     StateMachineNode::Ordinary(_) => {
+                        debug!("It's an ordinary node. Transition to {:?}.", next_node_id);
+
                         self.current_node_id = next_node_id;
                         self.current_path.push(key);
+
+                        debug!("Current path: {:?}.", self.current_path);
 
                         StateMachineResult::Transition()
                     },
                     StateMachineNode::End(v) => {
+                        debug!("It's an end node. Transition to root node.");
+
                         self.current_node_id = self.root_node_id;
                         self.current_path.clear();
+
+                        debug!("Current path: {:?}.", self.current_path);
 
                         StateMachineResult::Excited(v.clone())
                     }
                 }
             }
             _ => {
-                self.current_node_id = self.root_node_id;
+                debug!("No next node found for key: {:?}. Fallback to the root node.", key);
+                debug!("Fallback value: {:?}.", self.current_path);
 
+                self.current_node_id = self.root_node_id;
                 self.current_path.push(key);
+
+                debug!("Current path: {:?}.", self.current_path);
+
                 let result = StateMachineResult::fallback(
                     self.current_path.clone()
                 );
@@ -98,6 +129,19 @@ impl<K, V> StateMachine<K, V>
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn works_on_one_item_path() {
+        let mut state_machine: StateMachine<i32, i32> = StateMachine::new();
+
+        state_machine.add(vec!(1), 11).unwrap();
+        state_machine.add(vec!(2), 12).unwrap();
+        state_machine.add(vec!(3), 13).unwrap();
+
+        assert_eq!(StateMachineResult::Excited(11), state_machine.excite(1));
+        assert_eq!(StateMachineResult::Excited(12), state_machine.excite(2));
+        assert_eq!(StateMachineResult::Excited(13), state_machine.excite(3));
+    }
 
     #[test]
     fn makes_paths() {

@@ -1,20 +1,22 @@
 use std::hash::Hash;
+use std::fmt::Debug;
 use std::collections::HashMap;
 
 use crate::state_machine_node_id::StateMachineNodeId;
 use crate::state_machine_node::StateMachineNode;
 
+#[derive(Clone, Debug)]
 pub struct StateMachineNodeArena<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     nodes: HashMap<StateMachineNodeId, StateMachineNode<K, V>>,
     next_node_id: usize,
 }
 
 impl<K, V> StateMachineNodeArena<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     pub fn new() -> StateMachineNodeArena<K, V> {
         StateMachineNodeArena {

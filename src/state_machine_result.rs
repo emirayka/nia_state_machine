@@ -1,9 +1,10 @@
 use std::hash::Hash;
+use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum StateMachineResult<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     Transition(),
     Fallback(Vec<K>),
@@ -11,8 +12,8 @@ pub enum StateMachineResult<K, V>
 }
 
 impl<K, V> StateMachineResult<K, V>
-    where K: Clone + PartialEq + Eq + Hash,
-          V: Clone
+    where K: Clone + Debug + PartialEq + Eq + Hash,
+          V: Clone + Debug
 {
     pub fn transition() -> StateMachineResult<K, V> {
         StateMachineResult::Transition()
