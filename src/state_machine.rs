@@ -1,4 +1,3 @@
-use std::hash::Hash;
 use std::fmt::Debug;
 
 use log::{
@@ -12,7 +11,7 @@ use crate::state_machine_result::StateMachineResult;
 
 #[derive(Clone, Debug)]
 pub struct StateMachine<K, V>
-    where K: Clone + Debug + PartialEq + Eq + Hash,
+    where K: Clone + Debug + PartialEq + Eq,
           V: Clone + Debug
 {
     arena: StateMachineNodeArena<K, V>,
@@ -22,7 +21,7 @@ pub struct StateMachine<K, V>
 }
 
 impl<K, V> StateMachine<K, V>
-    where K: Clone + Debug + PartialEq + Eq + Hash,
+    where K: Clone + Debug + PartialEq + Eq,
           V: Clone + Debug
 {
     pub fn new() -> StateMachine<K, V> {

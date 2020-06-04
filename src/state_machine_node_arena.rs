@@ -1,13 +1,12 @@
-use std::hash::Hash;
 use std::fmt::Debug;
-use std::collections::HashMap;
 
 use crate::state_machine_node_id::StateMachineNodeId;
 use crate::state_machine_node::StateMachineNode;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct StateMachineNodeArena<K, V>
-    where K: Clone + Debug + PartialEq + Eq + Hash,
+    where K: Clone + Debug + PartialEq + Eq,
           V: Clone + Debug
 {
     nodes: HashMap<StateMachineNodeId, StateMachineNode<K, V>>,
@@ -15,7 +14,7 @@ pub struct StateMachineNodeArena<K, V>
 }
 
 impl<K, V> StateMachineNodeArena<K, V>
-    where K: Clone + Debug + PartialEq + Eq + Hash,
+    where K: Clone + Debug + PartialEq + Eq,
           V: Clone + Debug
 {
     pub fn new() -> StateMachineNodeArena<K, V> {
@@ -35,7 +34,7 @@ impl<K, V> StateMachineNodeArena<K, V>
     }
 
     pub fn make_new_ordinary_node(&mut self) -> StateMachineNodeId {
-        let node = StateMachineNode::Ordinary(HashMap::new());
+        let node = StateMachineNode::Ordinary(Vec::new());
 
         self.register_node(node)
     }
@@ -55,10 +54,13 @@ impl<K, V> StateMachineNodeArena<K, V>
 
         match node {
             StateMachineNode::Ordinary(next) => {
-                match next.get(key) {
-                    Some(node_id) => Some(*node_id),
-                    _ => None
+                for (k, v) in next {
+                    if k == key {
+                        return Some(*v)
+                    }
                 }
+
+                None
             }
             _ => {
                 None
@@ -74,7 +76,7 @@ impl<K, V> StateMachineNodeArena<K, V>
 
         match current_node {
             StateMachineNode::Ordinary(next_nodes) => {
-                next_nodes.insert(key, next_node_id);
+                next_nodes.push((key, next_node_id));
                 Ok(())
             }
             _ => Err(())
